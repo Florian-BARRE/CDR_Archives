@@ -3,16 +3,16 @@
 // Motor Left
 #define L_ENCA 18
 #define L_ENCB 19
-#define L_PWM 5
-#define L_IN2 6
-#define L_IN1 7
+#define L_PWM 10
+#define L_IN2 12
+#define L_IN1 11
 
 // Motor 2
 #define R_ENCA 20
 #define R_ENCB 21
-#define R_PWM 10
-#define R_IN2 11
-#define R_IN1 12
+#define R_PWM 5
+#define R_IN2 7
+#define R_IN1 6
 
 /* Régler le PID
  *  kp -> proportionnel
@@ -28,9 +28,10 @@
  *  III)Kd
  */
  
-float kp = 1;
-float kd = 0.055;
-float ki = 3.0;
+float kp = 1.0;
+float ki = 3.0; //ki = 3.0
+float kd = 0.05;// kd = 0.055;
+
   
 Motor left_motor( L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki);
 Motor right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, kp, kd, ki);
@@ -45,8 +46,7 @@ void setup() {
   
   right_motor.init();
   attachInterrupt(digitalPinToInterrupt(R_ENCA), right_motor_read_encoder, RISING);
-  
-  Serial.println("M1_target M1_pos M2_target M2_pos");
+
 }
 
 // Attach Interrupt
@@ -69,10 +69,12 @@ void loop() {
   */
   float deltaT = delta_time_calculator(prevT);
 
-  int target = 500*sin(2*prevT/1e6);
+  //int target = 500*sin(2*prevT/1e6);
+  int target = 0;
 
   left_motor.handlee(deltaT , target, 100);
   right_motor.handlee(deltaT, target, 100);
+  
   Serial.println();
 }
 

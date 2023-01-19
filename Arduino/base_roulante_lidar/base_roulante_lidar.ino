@@ -1,4 +1,5 @@
 #include <util/atomic.h> 
+#include "intercom.h"
 #include "lib.h"
 
 // Motor Left
@@ -17,8 +18,8 @@
 
 // Robots caracteristiques (distance in cm):
 #define ENCODER_RESOLUTION 1024
-#define CENTER_DISTANCE 29.9
-#define WHEEL_DIAMETER 6.25
+#define CENTER_DISTANCE 32.7
+#define WHEEL_DIAMETER 6.3
 
 // Inferred dimensions
 #define RADIUS (CENTER_DISTANCE / 2)
@@ -72,33 +73,6 @@ float Y     = 0;
 long RIGHT_TICKS = 0;
 long LEFT_TICKS  = 0;
 
-// Balade
-Action createAction(float obj_x, float obj_y){
-  unsigned int precision_cpt = 50;
-  unsigned int error_auth = 1;
-  float obj_theta = 0.0;
-  Action new_action = {obj_x, obj_y, obj_theta, true, false, true, 0, precision_cpt, error_auth, 0, 0};
-  return new_action;
-}
-
-#define BALADE_SIZE 8
-byte action_index = BALADE_SIZE+1;
-
-Action action0 = createAction(0.0, 0.0);
-
-Action action1 = createAction(20.0, 0.0);
-Action action2 = createAction(20.0, 20.0);
-Action action3 = createAction(0.0, 20.0);
-
-Action action4 = createAction(0.0, 0.0);
-
-Action action5 = createAction(0.0, 20.0);
-Action action6 = createAction(20.0, 20.0);
-Action action7 = createAction(20.0, 0.0);
-
-Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3, action4, action5, action6, action7};
-Action balade[BALADE_SIZE];
-
 void setup() {
   Serial.begin(9600);
   
@@ -119,24 +93,38 @@ void right_motor_read_encoder(){
     if(digitalRead(R_ENCB) > 0) right_motor.volatile_pos++;
     else                        right_motor.volatile_pos--;
 }
+/*
+int action_index = 0;
+Action current_action = {20.0, 20.0, 0.0, true, false, true, 0, 100, 5, 0, 0};
+Action current_action_2 = {60.0, 0.0, 0.0, true, false, true, 0, 100, 2, 0, 0};
+*/
+byte action_index = 0;
+Action action1 = createAction(20.0, 0.0);
+Action action2 = createAction(20.0, 20.0);
+Action action3 = createAction(0.0, 20.0);
+Action action4 = createAction(0.0, 0.0);
+
+#define BALADE_SIZE 4
+Action balade[BALADE_SIZE] = {action1, action2, action3, action4};
 
 void loop() {
   robot_position_calculator();
+  //DisplayAction(&current_action);
   mesurement_taker(&balade[action_index]);
+  //DisplayAction(&current_action);
   action_supervisor(&balade[action_index]);
-  motors_controller(&balade[action_index], 50);
+  //DisplayAction(&current_action);
+  motors_controller(&balade[action_index], 100);
+  //DisplayAction(&current_action);
+  //Serial.println("**********************");
 
   // Next coords if the current is done
   if(balade[action_index].rotation == false && balade[action_index].move_forward == false)
     action_index++;
 
   // No out of range
-  if(action_index >= BALADE_SIZE){
-    action_index = 0;
-    memcpy(balade, balade_model, sizeof(Action) * BALADE_SIZE);
-  }
+  if(action_index >= BALADE_SIZE) action_index = BALADE_SIZE - 1;
 }
-
 /******* Actions supervisor *******/
 void mesurement_taker(Action* action){
   if(action->mesurement_taker){
@@ -251,11 +239,11 @@ void trajectory_mesurement_calculator(float target_x, float target_y, float targ
   if(y_error == 0 || x_error == 0)*cmd_theta = 0;
   
   else *cmd_theta = atan2(y_error, x_error) - THETA;
-
-  // Took the best rotation angle
-  //if(*cmd_theta>PI) *cmd_theta =   -fmod(*cmd_theta, PI);
-  *cmd_theta = (*cmd_theta>PI || *cmd_theta<-PI) ? -fmod(*cmd_theta, PI) : *cmd_theta; // Noah a eu la merveilleuse idée d'employé un ? 
-  
+  /*
+  if(*cmd_theta < -PI/2 || *cmd_theta > PI/2){
+    *hypothenuse = -(*hypothenuse);
+    *cmd_theta = *cmd_theta - PI;
+  }*/
 }
 
 void rotation_ticks_calculator(float angle_rotate, long* r_ticks, long* l_ticks){
@@ -277,6 +265,7 @@ void move_forward_ticks_calculator(float distance, long* r_ticks, long* l_ticks)
   }
 }
 
+
 void DisplayAction(Action * act){
   Serial.println();
   Serial.print("target_x"); Serial.println(act->target_x);
@@ -291,4 +280,12 @@ void DisplayAction(Action * act){
   Serial.print("right_ticks");Serial.println(act->right_ticks);
   Serial.print("left_ticks");Serial.println(act->left_ticks);
   Serial.println();
+}
+
+Action createAction(float obj_x, float obj_y){
+  unsigned int precision_cpt = 100;
+  unsigned int error_auth = 5;
+  float obj_theta = 0.0;
+  Action new_action = {obj_x, obj_y, obj_theta, true, false, true, 0, precision_cpt, error_auth, 0, 0};
+  return new_action;
 }

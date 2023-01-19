@@ -1,8 +1,7 @@
-#include <util/atomic.h> 
 class Motor {
   
     private:
-    // Pins Motor
+      // Pins Motor
       byte _pin_forward;
       byte _pin_backward;
       byte _pin_pwm;  // PWM pin only !
@@ -20,7 +19,7 @@ class Motor {
         
     public: 
         // Attach interrupt variable
-        volatile int posi = 0; 
+        volatile long volatile_pos = 0; 
 
         // Natural constructor
         Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki){
@@ -44,13 +43,13 @@ class Motor {
             pinMode(_pin_encb, INPUT);
         }
         
-        void setMotor(int dir, int pwmVal, int pwm, int in1, int in2){
+        void setMotor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2){
             analogWrite(pwm, pwmVal);
-            if(dir == 1){
+            if(dir == -1){
                 digitalWrite(in1,HIGH);
                 digitalWrite(in2,LOW);
             }
-            else if(dir == -1){
+            else if(dir == 1){
                 digitalWrite(in1,LOW);
                 digitalWrite(in2,HIGH);
             }
@@ -60,10 +59,10 @@ class Motor {
             }  
         } 
 
-        void handlee(float delta_time, int target_pos, int max_speed){
-            int pos = 0;
+        void handlee(float delta_time, long target_pos, byte max_speed){
+            long pos = 0;
             ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                pos = posi;
+                pos = volatile_pos;
             }
             /*
             Serial.print(target_pos);
@@ -71,7 +70,7 @@ class Motor {
             Serial.print(pos);
             Serial.print(" ");
             */
-  
+
             // Calculate error 
             int error = pos - target_pos;
 
@@ -89,7 +88,7 @@ class Motor {
             if( power > max_speed )  power = max_speed;
 
             // Motor direction
-            int direction = 1;
+            int8_t direction = 1;
             if(u < 0)  direction = -1;
 
             // Set the correct motor commande
