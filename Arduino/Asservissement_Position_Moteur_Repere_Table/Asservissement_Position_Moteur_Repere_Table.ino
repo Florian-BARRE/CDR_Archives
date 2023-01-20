@@ -17,7 +17,7 @@
 
 // Robots caracteristiques (distance in cm):
 #define ENCODER_RESOLUTION 1024
-#define CENTER_DISTANCE 29.9
+#define CENTER_DISTANCE 29.1
 #define WHEEL_DIAMETER 6.25
 
 // Inferred dimensions
@@ -81,22 +81,15 @@ Action createAction(float obj_x, float obj_y){
   return new_action;
 }
 
-#define BALADE_SIZE 8
+#define BALADE_SIZE 4
 byte action_index = BALADE_SIZE+1;
 
 Action action0 = createAction(0.0, 0.0);
+Action action1 = createAction(10.0, 0.0);
+Action action2 = createAction(10.0, 10.0);
+Action action3 = createAction(0.0, 10.0);
 
-Action action1 = createAction(20.0, 0.0);
-Action action2 = createAction(20.0, 20.0);
-Action action3 = createAction(0.0, 20.0);
-
-Action action4 = createAction(0.0, 0.0);
-
-Action action5 = createAction(0.0, 20.0);
-Action action6 = createAction(20.0, 20.0);
-Action action7 = createAction(20.0, 0.0);
-
-Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3, action4, action5, action6, action7};
+Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3};
 Action balade[BALADE_SIZE];
 
 void setup() {
