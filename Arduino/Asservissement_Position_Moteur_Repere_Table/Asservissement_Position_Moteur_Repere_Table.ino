@@ -54,8 +54,8 @@ struct Action {
  * III)Kd
  */
  
-float kp = 0.8;
-float ki = 1.0; //ki = 3.0
+float kp = 1.5;
+float ki = 0.001; //ki = 3.0
 float kd = 0.05;// kd = 0.055;
 byte max_pwm = 100;
 
@@ -75,21 +75,24 @@ long LEFT_TICKS  = 0;
 // Balade
 Action createAction(float obj_x, float obj_y){
   unsigned int precision_cpt = 50;
-  unsigned int error_auth = 1;
+  unsigned int error_auth = 3;
   float obj_theta = 0.0;
   Action new_action = {obj_x, obj_y, obj_theta, true, false, true, 0, precision_cpt, error_auth, 0, 0};
   return new_action;
 }
 
-#define BALADE_SIZE 4
+#define BALADE_SIZE 3
 byte action_index = BALADE_SIZE+1;
 
 Action action0 = createAction(0.0, 0.0);
+Action action1 = createAction(40.0, 0.0);
+Action action2 = createAction(0.0, 0.0);
+/*
 Action action1 = createAction(10.0, 0.0);
 Action action2 = createAction(10.0, 10.0);
 Action action3 = createAction(0.0, 10.0);
-
-Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3};
+*/
+Action balade_model[BALADE_SIZE] = {action0, action1, action2};
 Action balade[BALADE_SIZE];
 
 void setup() {
