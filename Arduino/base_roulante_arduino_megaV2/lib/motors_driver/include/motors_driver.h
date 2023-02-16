@@ -17,6 +17,9 @@ private:
     float _kd;
     float _ki;
 
+    // Correction speed factor
+    float _correction_factor;
+
     // Variables
     int _error_prev = 0;
     float _error_integral = 0;
@@ -29,11 +32,11 @@ public:
     volatile long ticks = 0;
 
     // Natural constructor
-    Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki);
-  
+    Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki, float correction_factor);
+
     void init();
 
     void set_motor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2);
 
-    void handle(double delta_time, long target_pos, byte max_speed, float correction_factor);
+    void handle(double delta_time, long target_pos, byte max_speed);
 };

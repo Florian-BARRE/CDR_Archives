@@ -28,19 +28,20 @@ long LEFT_TICKS = 0;
 
 // Balade creation
 
-#define BALADE_SIZE 5
-byte action_index = BALADE_SIZE + 1;
-
-Action action0 = create_action(0.0, 0.0, 0.0);
-Action action1 = create_action(130.0, 0.0, 0.0);
-Action action2 = create_action(130.0, 70.0, 0.0);
-Action action3 = create_action(0.0, 70.0, 0.0);
-Action action4 = create_action(0.0, 0.0, 0.0);
-
-Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3, action4};
-/*
 #define BALADE_SIZE 2
 byte action_index = BALADE_SIZE + 1;
+
+Action action0 = create_action(0.0, 0.0);
+Action action1 = create_action(5.0, 0.0);
+Action action2 = create_action(50.0, 0.0);
+Action action3 = create_action(50.0, 50.0);
+Action action4 = create_action(100.0, 50.0);
+Action action5 = create_action(100.0, 0.0);
+Action balade_model[BALADE_SIZE] = {action0, action1};
+//Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3, action4, action5};
+/*
+#define BALADE_SIZE 2
+byte action_index = BALADE_SIZE + 1;  
 
 Action action0 = create_action(0.0, 0.0, 0.0);
 Action action1 = create_action(130.0, 0.0, 0.0);
@@ -82,7 +83,7 @@ void loop(){
     action_supervisor(&balade[action_index]);
     motors_controller(&balade[action_index], max_pwm);
   }
-/*
+
   Serial.print(" ");
   Serial.print(action_index);
   Serial.print(" ");
@@ -94,11 +95,13 @@ void loop(){
   Serial.print(" ");
   Serial.print(balade[action_index].end_movement_cpt);
   Serial.print(" ");
+  Serial.print(balade[action_index].ticks);
+  Serial.print(" ");
   Serial.print(X);
   Serial.print(" ");
   Serial.print(Y);
   Serial.print(" ");
-  Serial.print(THETA);*/
+  Serial.print(THETA);
 
   // Next coords if the current is done
   if (balade[action_index].start_rotation == false && balade[action_index].move_forward == false && balade[action_index].end_rotation == false)
@@ -134,7 +137,11 @@ void mesurement_taker(Action *action)
     //unsigned long ticks_cursor;
     short cmd_right_sign;
     short cmd_left_sign;
-
+    Serial.print(" cmd_hypothenuse ");
+    Serial.print(cmd_hypothenuse);
+    Serial.print(" cmd_theta ");
+    Serial.print(cmd_theta * (180/PI));
+    delay(8000);
     // Rotation mesurment
     if (action->start_rotation || action->end_rotation)
       rotation_ticks_calculator(cmd_theta, &cmd_ticks, &cmd_right_sign, &cmd_left_sign);
@@ -231,7 +238,7 @@ void move_forward_action(Action *action)
 void motors_controller(Action *action, byte max_pwm)
 {
   double deltaT = delta_time_calculator(prevT);
-  int auth_error = 5000;
+  int auth_error = 50;
 
   long right_ticks;
   long left_ticks;
@@ -241,7 +248,7 @@ void motors_controller(Action *action, byte max_pwm)
     left_ticks = left_motor.ticks;
   }
 
-  // Verif si beosin de corriger traj
+  // Do we need to correct the trajectory ?
   long right_error = action->ticks_cursor - abs(right_ticks - action->right_ref);
   long left_error = action->ticks_cursor - abs(left_ticks - action->left_ref);
 
@@ -254,31 +261,10 @@ void motors_controller(Action *action, byte max_pwm)
     if (action->ticks_cursor > action->ticks)
       action->ticks_cursor = action->ticks;
   }
-
-  float delta_theta;
-  float _;
-  trajectory_mesurement_calculator(
-      action->target_x,
-      action->target_y,
-      action->target_theta,
-      action->start_rotation,
-      action->end_rotation,
-      &_,
-      &delta_theta);
-
-  float factor = 1.0 - sqrt(map(fabs(delta_theta), 0, PI, 0, 1));
-  Serial.println(String("DELTA ") + String(factor));
-  if(delta_theta < 0){
-    right_motor.handle(deltaT, (action->right_ref + action->right_sign * action->ticks_cursor), max_pwm, 1.0);
-    Serial.print(" ");
-    left_motor.handle(deltaT, (action->left_ref + action->left_sign * action->ticks_cursor), max_pwm, factor);
-  }
-  else{
-    right_motor.handle(deltaT, (action->right_ref + action->right_sign * action->ticks_cursor), max_pwm, factor);
-    Serial.print(" ");
-    left_motor.handle(deltaT, (action->left_ref + action->left_sign * action->ticks_cursor), max_pwm, 1.0);
-  }
-
+  
+  right_motor.handle(deltaT, (action->right_ref + action->right_sign * action->ticks_cursor), max_pwm);
+  Serial.print(" ");
+  left_motor.handle(deltaT, (action->left_ref + action->left_sign * action->ticks_cursor), max_pwm);
 }
 
 /******* Calculator functions *******/
@@ -330,21 +316,21 @@ void trajectory_mesurement_calculator(float target_x, float target_y, float targ
     else
       *cmd_theta = atan2(y_error, x_error) - THETA;
   }
-  else if (end_rotation)
-  {
+  else if (end_rotation && target_theta != CLASSIC_ANGLE) 
     *cmd_theta = target_theta - THETA;
-  }
+  else
+    *cmd_theta = THETA; // If we dont't want to turn at the end of mouvement
 
   // Took the best rotation angle
   // if(*cmd_theta>PI) *cmd_theta =   -fmod(*cmd_theta, PI);
   //*cmd_theta = (*cmd_theta > PI || *cmd_theta < -PI) ? fmod(*cmd_theta, PI) : *cmd_theta; // Noah a eu la merveilleuse idée d'employé un ?
-  *cmd_theta = (*cmd_theta > PI || *cmd_theta < -PI) ? fmod(*cmd_theta, PI) : *cmd_theta;
+  *cmd_theta = (*cmd_theta > PI || *cmd_theta < -PI) ? -fmod(*cmd_theta, PI) : *cmd_theta;
 }
 
 void rotation_ticks_calculator(float angle_rotate, unsigned long *ticks, short *r_sign, short *l_sign)
 {
   float distance = (angle_rotate * RADIUS);
-  *ticks = (ENCODER_RESOLUTION / WHEEL_PERIMETER) * distance;
+  *ticks = abs((ENCODER_RESOLUTION / WHEEL_PERIMETER) * distance);
 
   if(*ticks > 0){
     *r_sign = 1;

@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#define CLASSIC_ANGLE 1234.1234
 // Structure Action
 struct Action
 {
@@ -22,7 +22,7 @@ struct Action
 };
 
 // Action creation
-Action create_action(float obj_x, float obj_y, float obj_theta)
+Action create_action(float obj_x, float obj_y, float obj_theta = CLASSIC_ANGLE)
 {
     unsigned int precision_cpt = 100;
     unsigned int error_auth = 10;
