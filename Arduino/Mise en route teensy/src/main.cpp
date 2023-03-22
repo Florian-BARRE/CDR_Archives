@@ -49,10 +49,6 @@ public:
     pinMode(_pin_forward, OUTPUT);
     pinMode(_pin_backward, OUTPUT);
     pinMode(_pin_pwm, OUTPUT);
-
-    //pinMode(_pin_enca, INPUT);
-    //pinMode(_pin_encb, INPUT);
-
   }
 
   void setMotor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2)
@@ -105,9 +101,13 @@ public:
     if (u < 0)
       direction = -1;
 
-    Serial.print(target_pos);
-    Serial.print(" ");
-    Serial.print(volatile_pos);
+    /*
+      Serial.print(" ");
+      Serial.print(target_pos);
+      Serial.print(" ");
+      Serial.print(volatile_pos);
+      Serial.print(" ");
+    */
 
     // Set the correct motor commande
     setMotor(direction, power, _pin_pwm, _pin_forward, _pin_backward);
@@ -117,20 +117,19 @@ public:
   }
 };
 
-
 // Motor Left
 #define L_ENCA 8 // blanc  -> jaune 8
 #define L_ENCB 7 // violet -> orange 7
-#define L_PWM 9 // violet -> vert 9
-#define L_IN2 4 // bleu -> blanc 4
-#define L_IN1 5 // vert -> gris 5
+#define L_PWM 9  // violet -> vert 9
+#define L_IN2 4  // bleu -> blanc 4
+#define L_IN1 5  // vert -> gris 5
 
 // Motor Right
 #define R_ENCA 6  // marron -> rouge 6
 #define R_ENCB 10 // orange -> bleu  10
-#define R_PWM 1 // bleu -> orange 1
-#define R_IN2 3 // violet -> noir 3
-#define R_IN1 2 // blanc -> marron 2
+#define R_PWM 1   // bleu -> orange 1
+#define R_IN2 3   // violet -> noir 3
+#define R_IN1 2   // blanc -> marron 2
 
 // Robots caracteristiques (distance in cm):
 #define ENCODER_RESOLUTION 1024
@@ -148,8 +147,9 @@ struct Action
   float target_x;
   float target_y;
   float target_theta;
-  bool rotation;
+  bool start_rotation;
   bool move_forward;
+  bool end_rotation;
   bool mesurement_taker;
   unsigned int end_movement_cpt;
   unsigned int end_movement_presicion;
@@ -160,8 +160,7 @@ struct Action
 
 void move_forward_ticks_calculator(float distance, long *r_ticks, long *l_ticks);
 void rotation_ticks_calculator(float angle_rotate, long *r_ticks, long *l_ticks);
-void trajectory_mesurement_calculator(float target_x, float target_y, float target_theta, float *hypothenuse, float *cmd_theta);
-
+void trajectory_mesurement_calculator(float target_x, float target_y, float target_theta, bool start_rotation, bool end_rotation, float *hypothenuse, float *cmd_theta);
 void robot_position_calculator();
 
 float delta_time_calculator(long &previous_time);
@@ -190,10 +189,10 @@ Encoder L_ENC(L_ENCA, L_ENCB);
  * III)Kd
  */
 
-float kp = 0.8;
-float ki = 1.0;  // ki = 3.0
-float kd = 0.05; // kd = 0.055;
-byte max_pwm = 100;
+float kp = 0.5;
+float ki = 0.0; // ki = 3.0
+float kd = 0.00005; // kd = 0.055;
+byte max_pwm = 50;
 
 Motor left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki);
 Motor right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, kp, kd, ki);
@@ -207,70 +206,93 @@ float Y = 0;
 long RIGHT_TICKS = 0;
 long LEFT_TICKS = 0;
 
+
+
 // Balade
-Action createAction(float obj_x, float obj_y)
+Action createAction(float obj_x, float obj_y, float obj_theta)
 {
-  unsigned int precision_cpt = 50;
-  unsigned int error_auth = 1;
-  float obj_theta = 0.0;
-  Action new_action = {obj_x, obj_y, obj_theta, true, false, true, 0, precision_cpt, error_auth, 0, 0};
+  unsigned int precision_cpt = 10;
+  unsigned int error_auth = 5;
+  Action new_action;
+  new_action.target_x = obj_x;
+  new_action.target_y = obj_y;
+  new_action.target_theta = obj_theta;
+  new_action.start_rotation = true;
+  new_action.move_forward = false;
+  new_action.end_rotation = false;
+  new_action.mesurement_taker = true;
+  new_action.end_movement_cpt = 0;
+  new_action.end_movement_presicion = precision_cpt;
+  new_action.error_precision = error_auth;
+  new_action.right_ticks = 0;
+  new_action.left_ticks = 0;
+
+  //Action new_action = {obj_x, obj_y, obj_theta, true, false, false, true, 0, precision_cpt, error_auth, 0, 0};
   return new_action;
 }
 
-#define BALADE_SIZE 1
+#define BALADE_SIZE 3
 byte action_index = BALADE_SIZE + 1;
 
-Action action0 = createAction(0.0, 0.0);
+Action action0 = createAction(0.0, 0.0, 0.0);
+Action action1 = createAction(0.0, 0.0, PI/2);
+Action action2 = createAction(0.0, 0.0, PI);
 
-Action balade_model[BALADE_SIZE] = {action0};
+Action balade_model[BALADE_SIZE] = {action0, action1, action2};
 Action balade[BALADE_SIZE];
 
 void setup()
 {
   Serial.begin(9600);
-
   left_motor.init();
-  //attachInterrupt(digitalPinToInterrupt(L_ENCA), left_motor_read_encoder, INPUT_PULLUP);
-
   right_motor.init();
-  //attachInterrupt(digitalPinToInterrupt(R_ENCA), right_motor_read_encoder, INPUT_PULLUP);
+  Serial.print(" SETUP" );
+  DisplayAction(&action0);
 }
-
-
 
 void loop()
 {
+  
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    right_motor.volatile_pos = R_ENC.read();
     left_motor.volatile_pos = L_ENC.read();
+    right_motor.volatile_pos = R_ENC.read();
+  }
+  if (0 <= action_index && action_index < BALADE_SIZE)
+  {
+    robot_position_calculator();
+    Serial.print(" A ");
+    DisplayAction(&balade[action_index]);
+    mesurement_taker(&balade[action_index]);
+    Serial.print(" B ");
+    DisplayAction(&balade[action_index]);
+    action_supervisor(&balade[action_index]);
+    Serial.print(" C ");
+    DisplayAction(&balade[action_index]);
+    motors_controller(&balade[action_index], max_pwm);
+    Serial.print(" D "); DisplayAction(&balade[action_index]);
+    //delay(1000);
   }
 
-  robot_position_calculator();
-  
-  //mesurement_taker(&balade[action_index]);
-  //action_supervisor(&balade[action_index]);
-  
-  //motors_controller(&balade[action_index], 50);
-  
-  
-  float deltaT = delta_time_calculator(prevT);
-  //right_motor.handlee(deltaT, balade[action_index].right_ticks, 100);
-  //left_motor.handlee(deltaT,  balade[action_index].left_ticks, 100);
-  right_motor.handlee(deltaT, 0, 100);
-  left_motor.handlee(deltaT,  0, 100);
-  //DisplayAction(&balade[action_index]);
-  /*
+ // DisplayAction(&balade[action_index]);
+
+  Serial.println(String("INDEX ") + String(action_index));
+
   // Next coords if the current is done
-  if (balade[action_index].rotation == false && balade[action_index].move_forward == false)
-    action_index++;
+  if (
+      balade[action_index].start_rotation == false &&
+      balade[action_index].move_forward == false &&
+      balade[action_index].end_rotation == false)
+    { action_index++; }
+   
 
   // No out of range
   if (action_index >= BALADE_SIZE)
   {
     action_index = 0;
     memcpy(balade, balade_model, sizeof(Action) * BALADE_SIZE);
-  }*/
+  }
+
   Serial.println();
 }
 
@@ -286,13 +308,16 @@ void mesurement_taker(Action *action)
         action->target_x,
         action->target_y,
         action->target_theta,
+        action->start_rotation,
+        action->end_rotation,
         &cmd_hypothenuse,
-        &cmd_theta);
+        &cmd_theta
+      );
 
     long cmd_right_ticks;
     long cmd_left_ticks;
     // Rotation mesurment
-    if (action->rotation)
+    if (action->start_rotation || action->end_rotation)
     {
       rotation_ticks_calculator(cmd_theta, &cmd_right_ticks, &cmd_left_ticks);
     }
@@ -311,10 +336,12 @@ void mesurement_taker(Action *action)
 
 void action_supervisor(Action *action)
 {
-  if (action->rotation)
+  if (action->start_rotation)
     rotation_action(action);
   else if (action->move_forward)
     move_forward_action(action);
+  else if (action->end_rotation)
+    rotation_action(action);
 }
 
 void rotation_action(Action *action)
@@ -330,9 +357,18 @@ void rotation_action(Action *action)
   // Checks if the robot has been in the right position long enough to move to the next action
   if (action->end_movement_cpt >= action->end_movement_presicion)
   {
-    action->rotation = false;
-    action->move_forward = true;
-    action->mesurement_taker = true;
+    if (action->start_rotation)
+    {
+      action->start_rotation = false;
+      action->move_forward = true;
+      action->mesurement_taker = true;
+    }
+    else if (action->end_rotation)
+    {
+      action->end_rotation = false;
+      action->move_forward = false;
+      action->mesurement_taker = false;
+    }
     action->end_movement_cpt = 0;
   }
 }
@@ -349,9 +385,10 @@ void move_forward_action(Action *action)
   // Checks if the robot has been in the right position long enough end the action
   if (action->end_movement_cpt >= action->end_movement_presicion)
   {
-    action->rotation = false;
+    action->start_rotation = false;
     action->move_forward = false;
-    action->mesurement_taker = false;
+    action->end_rotation = true;
+    action->mesurement_taker = true;
     action->end_movement_cpt = 0;
   }
 }
@@ -392,7 +429,7 @@ void robot_position_calculator()
   Y = Y + (sin(THETA) * movement_sum);
 }
 
-void trajectory_mesurement_calculator(float target_x, float target_y, float target_theta, float *hypothenuse, float *cmd_theta)
+void trajectory_mesurement_calculator(float target_x, float target_y, float target_theta, bool start_rotation, bool end_rotation, float *hypothenuse, float *cmd_theta)
 {
   float x_error = target_x - X;
   float y_error = target_y - Y;
@@ -400,11 +437,17 @@ void trajectory_mesurement_calculator(float target_x, float target_y, float targ
   // Calculated info
   *hypothenuse = sqrt((x_error * x_error) + (y_error * y_error));
 
-  if (y_error == 0 || x_error == 0)
-    *cmd_theta = 0;
+  // Rotation 
+  if(start_rotation){
+    if (y_error == 0 || x_error == 0)
+      *cmd_theta = 0;
 
-  else
-    *cmd_theta = atan2(y_error, x_error) - THETA;
+    else
+      *cmd_theta = atan2(y_error, x_error) - THETA;
+  }
+  else if (end_rotation){
+    *cmd_theta = target_theta - THETA;
+  }
 
   // Took the best rotation angle
   // if(*cmd_theta>PI) *cmd_theta =   -fmod(*cmd_theta, PI);
@@ -443,10 +486,12 @@ void DisplayAction(Action *act)
   Serial.println(act->target_y);
   Serial.print("target_theta");
   Serial.println(act->target_theta);
-  Serial.print("rotation");
-  Serial.println(act->rotation);
+  Serial.print("start rotation");
+  Serial.println(act->start_rotation);
   Serial.print("move_forward");
   Serial.println(act->move_forward);
+  Serial.print("end rotation");
+  Serial.println(act->end_rotation);
   Serial.print("mesurement_taker");
   Serial.println(act->mesurement_taker);
   Serial.print("end_movement_cpt");

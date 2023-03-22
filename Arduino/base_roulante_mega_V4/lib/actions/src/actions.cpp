@@ -3,7 +3,7 @@
 Action create_action_bis(float obj_x, float obj_y, float obj_theta = CLASSIC_ANGLE)
 {
     unsigned int precision_cpt = 100;
-    unsigned int error_auth = 10;
+    unsigned int error_auth = 20;
     Action new_action;
     new_action.target_x = obj_x;
     new_action.target_y = obj_y;

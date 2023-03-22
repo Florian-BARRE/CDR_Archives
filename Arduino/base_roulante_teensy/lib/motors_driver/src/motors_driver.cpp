@@ -55,7 +55,7 @@ void Motor::_debug_print(float dtime, long target_pos, byte max_pwm, int error, 
 
 void Motor::handle(double delta_time, long target_pos, byte max_speed)
 {
-    ticks = _encoder_ptr->read();
+    ticks = _encoder_ptr->read() ;
 
     // Calculate error
     int error = ticks - target_pos;
@@ -84,6 +84,11 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
 
     // Save error
     _error_prev = error;
+
+
+    Serial.print(ticks);
+    Serial.print(" ");
+    Serial.print(target_pos);
 
     if (DEBUG_MODE)
         _debug_print(delta_time, target_pos, max_speed, error, dedt, _error_integral, u);

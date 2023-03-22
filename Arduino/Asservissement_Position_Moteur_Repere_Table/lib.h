@@ -12,17 +12,18 @@ class Motor {
       float _kp;
       float _kd;
       float _ki;
-
+      byte _pwm_dif;
+      
       // Variables 
       float _error_prev = 0;
       float _error_integral = 0;
         
     public: 
         // Attach interrupt variable
-        volatile long volatile_pos = 0; 
+        volatile long ticks = 0; 
 
         // Natural constructor
-        Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki){
+        Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki, byte pwm_dif){
             _pin_forward   = pin_forward;
             _pin_backward  = pin_backward;
             _pin_pwm       = pin_pwm;  // PWM pin only !
@@ -32,6 +33,7 @@ class Motor {
             _kp = kp;
             _kd = kd;
             _ki = ki;
+            _pwm_dif = pwm_dif;
         }
 
         void init(){
@@ -43,7 +45,7 @@ class Motor {
             pinMode(_pin_encb, INPUT);
         }
         
-        void setMotor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2){
+        void set_motor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2){
             analogWrite(pwm, pwmVal);
             if(dir == -1){
                 digitalWrite(in1,HIGH);
@@ -59,42 +61,45 @@ class Motor {
             }  
         } 
 
-        void handlee(float delta_time, long target_pos, byte max_speed){
-            long pos = 0;
-            ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                pos = volatile_pos;
-            }
-            /*
-            Serial.print(target_pos);
-            Serial.print(" ");
-            Serial.print(pos);
-            Serial.print(" ");
-            */
-
-            // Calculate error 
-            int error = pos - target_pos;
-
-            // Calculate derivative
-            float dedt = (error - _error_prev)/delta_time;
-
-            // Calculate integral
-            _error_integral = _error_integral + (error*delta_time);
-
-            // Control signal
-            float u = _kp*error + _kd*dedt + _ki*_error_integral;
-
-            // Motor power
-            float power = fabs(u);
-            if( power > max_speed )  power = max_speed;
-
-            // Motor direction
-            int8_t direction = 1;
-            if(u < 0)  direction = -1;
-
-            // Set the correct motor commande
-            setMotor(direction, power, _pin_pwm, _pin_forward, _pin_backward);
-
-            // Save error
-            _error_prev = error;
+        void handle(float delta_time, long target_pos, byte max_speed){
+            long fix_ticks = 0;
+              ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+              {
+                  fix_ticks = ticks;
+              }
+          
+              // Calculate error
+              int error = fix_ticks - target_pos;
+          
+              // Calculate derivative
+              double dedt = (error - _error_prev) / delta_time;
+          
+              // Calculate integral
+              _error_integral = _error_integral + (error * delta_time);
+          
+              // Control signal
+              float u = _kp * error + _kd * dedt + _ki * _error_integral;
+          
+              // Motor power
+              float power = fabs(u) - _pwm_dif;
+              if (power > max_speed)
+                  power = max_speed;
+              if(power < 0)
+                power = 0;
+          
+              // Motor direction
+              int8_t direction = 1;
+              if (u < 0)
+                  direction = -1;
+          
+              // Set the correct motor commande
+              set_motor(direction, power, _pin_pwm, _pin_forward, _pin_backward);
+          
+              // Save error
+              _error_prev = error;
+          
+              Serial.print(fix_ticks);
+              Serial.print(" ");
+              Serial.print(target_pos);
         }       
 };

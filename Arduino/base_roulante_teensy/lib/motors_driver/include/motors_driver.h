@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Encoder.h>
 
-#define DEBUG_MODE true
+#define DEBUG_MODE false
 
 class Motor {
 

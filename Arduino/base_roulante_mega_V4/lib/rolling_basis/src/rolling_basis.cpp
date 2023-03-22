@@ -2,20 +2,23 @@
 #include <Arduino.h>
 #include <util/atomic.h>
 
-inline float Rolling_Basis::delta_time_calculator(float &previous_time){
+inline float Rolling_Basis::delta_time_calculator(float &previous_time)
+{
     long current_time = micros();
     float delta_time = ((float)(current_time - previous_time)) / (1.0e6);
     previous_time = current_time;
     return delta_time;
 }
 
-void Rolling_Basis::init_position(float x, float y, float theta){
-    this->X=x;
-    this->Y=y;
-    this->THETA=theta;
+void Rolling_Basis::init_position(float x, float y, float theta)
+{
+    this->X = x;
+    this->Y = y;
+    this->THETA = theta;
 }
 
-void Rolling_Basis::init_motors(){
+void Rolling_Basis::init_motors()
+{
     this->right_motor->init();
     this->left_motor->init();
 }
@@ -29,22 +32,25 @@ Rolling_Basis::Rolling_Basis(unsigned short encoder_resolution, float center_dis
     this->corrector_error_auth = corrector_error_auth;
 }
 
-void Rolling_Basis::init_right_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0){
+void Rolling_Basis::init_right_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0)
+{
     this->right_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor);
 }
-void Rolling_Basis::init_left_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0){
+void Rolling_Basis::init_left_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0)
+{
     this->left_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor);
 }
 
-void Rolling_Basis::odometrie_handle(){
+void Rolling_Basis::odometrie_handle()
+{
     /* Determine the position of the robot */
-    long delta_left  = this->left_motor->ticks - this->left_ticks;
+    long delta_left = this->left_motor->ticks - this->left_ticks;
     this->left_ticks = this->left_ticks + delta_left;
 
-    long delta_right  = this->right_motor->ticks - this->right_ticks;
+    long delta_right = this->right_motor->ticks - this->right_ticks;
     this->right_ticks = this->right_ticks + delta_right;
 
-    float left_move  = delta_left * this->wheel_unit_tick_cm();
+    float left_move = delta_left * this->wheel_unit_tick_cm();
     float right_move = delta_right * this->wheel_unit_tick_cm();
 
     float movement_difference = right_move - left_move;
@@ -66,7 +72,7 @@ float Rolling_Basis::trajectory_theta_calculator(float target_x, float target_y)
         cmd_theta = PI / 2;
     else if (x_error == 0 && y_error < 0)
         cmd_theta = -(PI / 2);
-    
+
     // If don't need to rotate
     if (y_error == 0)
         cmd_theta = this->THETA;
@@ -74,7 +80,7 @@ float Rolling_Basis::trajectory_theta_calculator(float target_x, float target_y)
         cmd_theta = atan2(y_error, x_error) - this->THETA;
 
     //*cmd_theta = (*cmd_theta > PI || *cmd_theta < -PI) ? fmod(*cmd_theta, PI) : *cmd_theta; // Noah a eu la merveilleuse idée d'employé un ?
-    cmd_theta = (cmd_theta > PI || cmd_theta < -PI) ? -fmod(cmd_theta, PI) : cmd_theta;
+    // cmd_theta = (cmd_theta > PI || cmd_theta < -PI) ? -fmod(cmd_theta, PI) : cmd_theta;
     return cmd_theta;
 }
 float Rolling_Basis::trajectory_distance_calculator(float target_x, float target_y)
@@ -87,23 +93,25 @@ float Rolling_Basis::trajectory_distance_calculator(float target_x, float target
     return cmd_dist;
 }
 
-float Rolling_Basis::delta_theta_calculator(float target_theta){
-    float mod_theta = fmod(this->THETA, 2.0 * PI);
-    float delta_theta = abs(abs(mod_theta) - abs(this->THETA));
+float Rolling_Basis::delta_theta_calculator(float target_theta)
+{
+    float current_theta = fmod(this->THETA, 2.0 * PI);
+    float delta_theta = fabs(fabs(current_theta) - fabs(target_theta));
 
     short sign = 1;
     // W peut etre > au lieu de '<'
-    if (target_theta < mod_theta) 
+    if (target_theta - current_theta < 0)
         sign = -1;
-    
+
     return sign * delta_theta;
 }
 
-void Rolling_Basis::theta_to_ticks(float theta_to_rotate, unsigned long *ticks, short *r_sign, short *l_sign){
+void Rolling_Basis::theta_to_ticks(float theta_to_rotate, unsigned long *ticks, short *r_sign, short *l_sign)
+{
     float distance = (theta_to_rotate * this->radius());
     *ticks = abs((this->encoder_resolution / this->wheel_perimeter()) * distance);
 
-    if (*ticks > 0)
+    if (theta_to_rotate > 0.0)
     {
         *r_sign = 1;
         *l_sign = -1;
@@ -115,7 +123,8 @@ void Rolling_Basis::theta_to_ticks(float theta_to_rotate, unsigned long *ticks, 
     }
 }
 // Distance to ticks
-void Rolling_Basis::distance_to_ticks(float distance, unsigned long *ticks, short *r_sign, short *l_sign){
+void Rolling_Basis::distance_to_ticks(float distance, unsigned long *ticks, short *r_sign, short *l_sign)
+{
     *ticks = (this->encoder_resolution / this->wheel_perimeter()) * distance;
 
     if (*ticks > 0)
@@ -132,27 +141,43 @@ void Rolling_Basis::distance_to_ticks(float distance, unsigned long *ticks, shor
 
 void Rolling_Basis::ticks_calculator(Action *action)
 {
-    if (action->mesurement_taker) {
+    if (action->mesurement_taker)
+    {
         short left_sign;
         short right_sign;
         unsigned long cmd_ticks;
 
-        if(action->start_rotation){
+        Serial.println(
+            String("start_rotation : ") + String(action->start_rotation) +
+            String(" move_forward : ") + String(action->move_forward) +
+            String(" end_rotation : ") + String(action->end_rotation));
+        delay(5000);
+
+        if (action->start_rotation)
+        {
             float cmd_theta = this->trajectory_theta_calculator(action->target_x, action->target_y);
             this->theta_to_ticks(cmd_theta, &cmd_ticks, &right_sign, &left_sign);
-
         }
-        else if(action->move_forward){
+        else if (action->move_forward)
+        {
             float cmd_dist = this->trajectory_distance_calculator(action->target_x, action->target_y);
             this->distance_to_ticks(cmd_dist, &cmd_ticks, &right_sign, &left_sign);
         }
         else if (action->end_rotation)
         {
-            float cmd_theta = this->delta_theta_calculator(action->target_theta);
+
+
+            float cmd_theta = this->THETA;
+            if (action->target_theta != CLASSIC_ANGLE)
+                cmd_theta = this->delta_theta_calculator(action->target_theta);
+
             this->theta_to_ticks(cmd_theta, &cmd_ticks, &right_sign, &left_sign);
+
+            delay(10000);
         }
 
-        if (action->start_rotation || action->move_forward || action->end_rotation){
+        if (action->start_rotation || action->move_forward || action->end_rotation)
+        {
             action->mesurement_taker = false;
             action->ticks = cmd_ticks;
             action->ticks_cursor = 0;
@@ -161,14 +186,20 @@ void Rolling_Basis::ticks_calculator(Action *action)
             action->right_ref = this->right_motor->ticks;
             action->left_ref = this->left_motor->ticks;
         }
-    }
 
+        Serial.println(
+            String("left_sign : ") + String(left_sign) +
+            String(" right_sign : ") + String(right_sign) +
+            String(" cmd_ticks : ") + String(cmd_ticks));
+        delay(5000);
+    }
 }
 
-void Rolling_Basis::action_handle(Action *current_action) {
+void Rolling_Basis::action_handle(Action *current_action)
+{
     this->ticks_calculator(current_action);
 
-    if (current_action->start_rotation) 
+    if (current_action->start_rotation)
         this->rotation_supervisor(current_action);
 
     else if (current_action->move_forward)
@@ -180,7 +211,8 @@ void Rolling_Basis::action_handle(Action *current_action) {
     motors_controller(current_action);
 }
 
-void Rolling_Basis::motors_controller(Action *action){
+void Rolling_Basis::motors_controller(Action *action)
+{
     double deltaT = this->delta_time_calculator(this->prevT);
 
     long right_ticks;
@@ -211,7 +243,8 @@ void Rolling_Basis::motors_controller(Action *action){
     this->left_motor->handle(deltaT, (action->left_ref + action->left_sign * action->ticks_cursor), this->max_pwm);
 }
 
-void Rolling_Basis::move_forward_supervisor(Action *action){
+void Rolling_Basis::move_forward_supervisor(Action *action)
+{
     long right_error;
     long left_error;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -235,16 +268,16 @@ void Rolling_Basis::move_forward_supervisor(Action *action){
     }
 }
 
-void Rolling_Basis::rotation_supervisor(Action *action){
-    long right_ticks;
-    long left_ticks;
+void Rolling_Basis::rotation_supervisor(Action *action)
+{
+    long right_error;
+    long left_error;
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
-        right_ticks = this->right_motor->ticks;
-        left_ticks = this->left_motor->ticks;
+        right_error = abs((action->right_ref + action->right_sign * action->ticks) - this->right_motor->ticks);
+        left_error = abs((action->left_ref + action->left_sign * action->ticks) - this->left_motor->ticks);
     }
-    long right_error = abs(action->right_ref + action->right_sign * action->ticks) - abs(right_ticks);
-    long left_error = abs(action->left_ref + action->left_sign * action->ticks) - abs(left_ticks);
 
     // Check if the robot is near the target position
     if (action->error_precision >= right_error && action->error_precision >= left_error)
@@ -257,12 +290,14 @@ void Rolling_Basis::rotation_supervisor(Action *action){
         {
             action->start_rotation = false;
             action->move_forward = true;
+            action->end_rotation = false;
             action->mesurement_taker = true;
         }
         else if (action->end_rotation)
         {
-            action->end_rotation = false;
+            action->start_rotation = false;
             action->move_forward = false;
+            action->end_rotation = false;
             action->mesurement_taker = false;
         }
         action->end_movement_cpt = 0;

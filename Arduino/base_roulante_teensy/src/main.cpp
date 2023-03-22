@@ -33,47 +33,84 @@ long RIGHT_TICKS = 0;
 long LEFT_TICKS = 0;
 
 // Balade creation
-#define BALADE_SIZE 3
+#define BALADE_SIZE 5
 byte action_index = BALADE_SIZE + 1;
 
 Action action0 = create_action(0.0, 0.0, 0.0);
-Action action1 = create_action(0.0, 0.0, PI / 2);
-Action action2 = create_action(0.0, 0.0, PI);
+Action action1 = create_action(50.0, 0.0, 0.0);
+Action action2 = create_action(0.0, 0.0, 0.0);
+Action action3 = create_action(50.0, 0.0, 0.0);
+Action action4 = create_action(0.0, 0.0, 0.0);
 
-Action balade_model[BALADE_SIZE] = {action0, action1, action2};
+
+Action balade_model[BALADE_SIZE] = {action0, action1, action2, action3, action4};
 Action balade[BALADE_SIZE];
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(19200);
   left_motor.init();
   right_motor.init();
 }
 
 void loop()
 {
-  if (0 <= action_index && action_index < BALADE_SIZE) {
-    robot_position_calculator();
-    mesurement_taker(&balade[action_index]);
-    action_supervisor(&balade[action_index]);
-    motors_controller(&balade[action_index], max_pwm);
-  }
 
-  // DisplayAction(&balade[action_index]);
+  if (0 <= action_index && action_index < BALADE_SIZE)
+   {
+     robot_position_calculator();
+     mesurement_taker(&balade[action_index]);
+     action_supervisor(&balade[action_index]);
+     motors_controller(&balade[action_index], max_pwm);
+   }
 
-  Serial.println(String("INDEX ") + String(action_index));
+   Serial.print(" ");
+   Serial.print(action_index);
+   Serial.print(" ");
+   Serial.print(balade[action_index].start_rotation);
+   Serial.print(" ");
+   Serial.print(balade[action_index].move_forward);
+   Serial.print(" ");
+   Serial.print(balade[action_index].end_rotation);
+   Serial.print(" ");
+   Serial.print(balade[action_index].end_movement_cpt);
+   Serial.print(" ");
+   Serial.print(X);
+   Serial.print(" ");
+   Serial.print(Y);
+   Serial.print(" ");
+   Serial.print(THETA);
 
-  // Next coords if the current is done
-  if ( balade[action_index].start_rotation == false && balade[action_index].move_forward == false && balade[action_index].end_rotation == false)
-    action_index++;
+   // Next coords if the current is done
+   if ( balade[action_index].start_rotation == false && balade[action_index].move_forward == false && balade[action_index].end_rotation == false)
+     action_index++;
+
+   // No out of range
+   if (action_index >= BALADE_SIZE)
+   {
+     action_index = 0;
+     memcpy(balade, balade_model, sizeof(Action) * BALADE_SIZE);
+   }
   
-  // No out of range
-  if (action_index >= BALADE_SIZE)
-  {
-    action_index = 0;
-    memcpy(balade, balade_model, sizeof(Action) * BALADE_SIZE);
-  }
-
+  /*
+  Serial.print(" ");
+  Serial.print(action_index);
+  Serial.print(" ");
+  Serial.print(action0.start_rotation);
+  Serial.print(" ");
+  Serial.print(action0.move_forward);
+  Serial.print(" ");
+  Serial.print(action0.end_rotation);
+  Serial.print(" ");
+  Serial.print(action0.end_movement_cpt);
+  Serial.print(" ");
+  Serial.print(X);
+  Serial.print(" ");
+  Serial.print(Y);
+  Serial.print(" ");
+  Serial.print(THETA);
+  Serial.println();
+  */
   Serial.println();
 }
 /****-- Supervisor Part --****/
@@ -174,6 +211,7 @@ void motors_controller(Action *action, byte max_pwm)
   double deltaT = delta_time_calculator(prevT);
 
   right_motor.handle(deltaT, action->right_ticks, max_pwm);
+  Serial.print(" ");
   left_motor.handle(deltaT, action->left_ticks, max_pwm);
 }
 
@@ -216,9 +254,13 @@ void trajectory_mesurement_calculator(float target_x, float target_y, float targ
   // Rotation
   if (start_rotation)
   {
-    if (y_error == 0 || x_error == 0)
-      *cmd_theta = 0;
+    if (x_error == 0 && y_error > 0)
+      *cmd_theta = PI/2;
+    else if (x_error == 0 && y_error < 0)
+      *cmd_theta = -(PI / 2);
 
+    if (y_error == 0)
+      *cmd_theta = 0;
     else
       *cmd_theta = atan2(y_error, x_error) - THETA;
   }

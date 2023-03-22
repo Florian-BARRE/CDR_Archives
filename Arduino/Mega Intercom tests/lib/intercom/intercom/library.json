@@ -1,0 +1,12 @@
+{
+    "name": "cpp_intercom",
+    "version": "1.0.0",
+    "description": "Intercom client for embedded devices written in cpp",
+    "keywords": "intercom",
+    "dependencies": {
+        "bblanchon/ArduinoJson": "^6.18.5",
+        "paulstoffregen/PWMServo": "^2.1"
+    },
+    "frameworks": "*",
+    "platforms": "*"
+  }

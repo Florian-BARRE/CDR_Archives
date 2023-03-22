@@ -79,9 +79,12 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
     float u = _kp * error + _kd * dedt + _ki * _error_integral;
 
     // Motor power
-    float power = fabs(u * _correction_factor);
+    float power = fabs(u);
     if (power > max_speed)
         power = max_speed;
+
+    power *= _correction_factor;
+    
 
     // Motor direction
     int8_t direction = 1;
