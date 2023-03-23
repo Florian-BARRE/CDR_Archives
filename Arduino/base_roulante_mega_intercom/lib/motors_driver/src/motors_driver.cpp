@@ -89,7 +89,7 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
         direction = -1;
 
     // Set the correct motor commande
-    set_motor(direction, power, _pin_pwm, _pin_forward, _pin_backward);
+    set_motor(direction, power);
 
     // Save error
     _error_prev = error;

@@ -2,9 +2,10 @@ from pyintercom import get_intercom_instance
 
 intercom = get_intercom_instance()
 
-def serialPrint(data):
-    print(data)
+def test_topic(data):
+    print("message reçu :", data)
 
-intercom.subscribe("print", serialPrint)
+intercom.subscribe('test', test_topic)
+
 
 intercom.wait_here()
