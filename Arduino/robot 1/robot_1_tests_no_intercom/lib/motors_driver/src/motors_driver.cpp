@@ -29,12 +29,12 @@ void Motor::init(){
 void Motor::set_motor(int8_t dir, byte pwmVal)
 {
     analogWrite(_pin_pwm, pwmVal);
-    if (dir == -1)
+    if (dir == 1)
     {
         digitalWrite(_pin_forward, HIGH);
         digitalWrite(_pin_backward, LOW);
     }
-    else if (dir == 1)
+    else if (dir == -1)
     {
         digitalWrite(_pin_forward, LOW);
         digitalWrite(_pin_backward, HIGH);

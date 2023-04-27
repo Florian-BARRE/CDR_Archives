@@ -3,8 +3,8 @@
 
 // Creation Rolling Basis
 #define ENCODER_RESOLUTION 1024
-#define CENTER_DISTANCE 27.0
-#define WHEEL_DIAMETER 6.25
+#define CENTER_DISTANCE 27.07
+#define WHEEL_DIAMETER 6.1
 
 /*
 // Motor Left
@@ -38,7 +38,7 @@
 float kp = 0.9;
 float ki = 0.0003;
 float kd = 0.0;
-byte max_pwm = 100;
+byte max_pwm = 150;
 
 Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER, max_pwm, 50);
 
@@ -46,9 +46,9 @@ Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_
 #define BALADE_SIZE 3
 byte action_index = BALADE_SIZE + 1;
 
-Action action0 = create_action_bis(0.0, 0.0, PI);
-Action action1 = create_action_bis(10.0, 0.0, PI);
-Action action2 = create_action_bis(0.0, 0.0, PI);
+Action action0 = create_action_bis(50.0, 0.0);
+Action action1 = create_action_bis(10.0, 0.0);
+Action action2 = create_action_bis(0.0, 0.0);
 
 /*
 Action action2 = create_action_bis(20.0, 50.0);
@@ -81,7 +81,7 @@ void setup()
   Serial.begin(9600);
 
   rolling_basis_ptr->init_right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, kp, kd, ki, 1.0);
-  rolling_basis_ptr->init_left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki, 1.1);
+  rolling_basis_ptr->init_left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki, 1.0);
   rolling_basis_ptr->init_motors();
   attachInterrupt(digitalPinToInterrupt(L_ENCA), left_motor_read_encoder, RISING);
   attachInterrupt(digitalPinToInterrupt(R_ENCA), right_motor_read_encoder, RISING);

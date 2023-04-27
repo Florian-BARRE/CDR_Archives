@@ -26,23 +26,23 @@ void Motor::init(){
     pinMode(_pin_encb, INPUT);
 }
 
-void Motor::set_motor(int8_t dir, byte pwmVal)
+void Motor::set_motor(int8_t dir, byte pwmVal, byte pwm, byte in1, byte in2)
 {
-    analogWrite(_pin_pwm, pwmVal);
+    analogWrite(pwm, pwmVal);
     if (dir == -1)
     {
-        digitalWrite(_pin_forward, HIGH);
-        digitalWrite(_pin_backward, LOW);
+        digitalWrite(in1, HIGH);
+        digitalWrite(in2, LOW);
     }
     else if (dir == 1)
     {
-        digitalWrite(_pin_forward, LOW);
-        digitalWrite(_pin_backward, HIGH);
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, HIGH);
     }
     else
     {
-        digitalWrite(_pin_forward, LOW);
-        digitalWrite(_pin_backward, LOW);
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, LOW);
     }
 }
 
@@ -79,22 +79,20 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
     float u = _kp * error + _kd * dedt + _ki * _error_integral;
 
     // Motor power
-    float power = fabs(u * _correction_factor);
+    float power = fabs(u);
     if (power > max_speed)
         power = max_speed;
 
-    /*
-    if (power < 30)
-        power = 0;
-    */
+    power *= _correction_factor;
+    
 
-        // Motor direction
-        int8_t direction = 1;
+    // Motor direction
+    int8_t direction = 1;
     if (u < 0)
         direction = -1;
 
     // Set the correct motor commande
-    set_motor(direction, power);
+    set_motor(direction, power, _pin_pwm, _pin_forward, _pin_backward);
 
     // Save error
     _error_prev = error;
