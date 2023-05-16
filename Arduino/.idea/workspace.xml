@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="bfa713c4-a39f-46f8-8957-94213b280028" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_V4/platformio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_V4/platformio.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_V4/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_V4/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_intercom/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_intercom/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_intercom/lib/motors_driver/src/motors_driver.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_intercom/lib/motors_driver/src/motors_driver.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_intercom/platformio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_intercom/platformio.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_roulante_mega_intercom/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/base_roulante_mega_intercom/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Py/Eye/scripts/debug_test_distortion_before_after.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Py/Eye/scripts/debug_test_distortion_before_after.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/classes/calibration_camera/chess_calibration_camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/classes/calibration_camera/chess_calibration_camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/classes/calibration_camera/chess_picture_taker.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/classes/calibration_camera/chess_picture_taker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/classes/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/classes/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/scripts/load_undistort_coef.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/scripts/load_undistort_coef.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/scripts/simple_aruco_recognize_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/scripts/simple_aruco_recognize_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/scripts/simple_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/scripts/simple_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/scripts/undistort_coef_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/scripts/undistort_coef_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Eye/scripts/undistort_image_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Eye/scripts/undistort_image_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/captures/AFTER.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/captures/AFTER.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/captures/BEFORE.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/captures/BEFORE.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/coords_sender.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/coords_sender.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/eye.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/eye.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/f2py.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/pip-3.9.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/pip-3.9.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/pip.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/pip.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/pip3.9.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/pip3.9.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/pip3.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/pip3.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/range-detector" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel-3.9.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel-3.9.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel3.9.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel3.9.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel3.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/scripts/wheel3.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/FullV/topics_callbacks.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/FullV/topics_callbacks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rasp/Version 2023/Contournement/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../rasp/Version 2023/Contournement/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="2P0rdXAT685x6vnfxfb3xNKdZqU" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/floot/Documents/ESILV/CDR/Code/Code_Rasp"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bfa713c4-a39f-46f8-8957-94213b280028" name="Changes" comment="" />
+      <created>1682604928103</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1682604928103</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

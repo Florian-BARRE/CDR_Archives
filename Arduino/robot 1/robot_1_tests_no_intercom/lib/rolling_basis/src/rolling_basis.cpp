@@ -29,12 +29,14 @@ Rolling_Basis::Rolling_Basis(unsigned short encoder_resolution, float center_dis
     this->corrector_error_auth = corrector_error_auth;
 }
 
-void Rolling_Basis::init_right_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0){
-    this->right_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor);
+void Rolling_Basis::init_right_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0, byte threshold_pwm_value=0)
+{
+    this->right_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor, threshold_pwm_value);
 }
 
-void Rolling_Basis::init_left_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0){
-    this->left_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor);
+void Rolling_Basis::init_left_motor(byte enca, byte encb, byte pwm, byte in2, byte in1, float kp, float kd, float ki, float correction_factor = 1.0, byte threshold_pwm_value = 0)
+{
+    this->left_motor = new Motor(enca, encb, pwm, in2, in1, kp, kd, ki, correction_factor, threshold_pwm_value);
 }
 
 void Rolling_Basis::odometrie_handle(){
@@ -230,7 +232,7 @@ void Rolling_Basis::move_forward_supervisor(Action *action){
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
         right_error = abs((action->right_ref + action->right_sign * action->ticks) - this->right_motor->ticks);
-        left_error = abs((action->left_ref + action->left_sign * action->ticks) - this->left_motor->ticks);
+        left_error  = abs((action->left_ref  + action->left_sign  * action->ticks) - this->left_motor->ticks );
     }
 
     // Check if the robot is near the target position

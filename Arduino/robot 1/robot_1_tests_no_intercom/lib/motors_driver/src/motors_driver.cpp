@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <util/atomic.h>
 
-Motor::Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki, float correction_factor=1.0)
+Motor::Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, byte pin_encb, float kp, float kd, float ki, float correction_factor = 1.0, byte threshold_pwm_value=0)
 {
     _pin_forward = pin_forward;
     _pin_backward = pin_backward;
@@ -15,6 +15,7 @@ Motor::Motor(byte pin_forward, byte pin_backward, byte pin_pwm, byte pin_enca, b
     _ki = ki;
 
     _correction_factor = correction_factor;
+    _threshold_pwm_value = threshold_pwm_value;
 }
 
 void Motor::init(){
@@ -28,6 +29,7 @@ void Motor::init(){
 
 void Motor::set_motor(int8_t dir, byte pwmVal)
 {
+    Serial.println(pwmVal);
     analogWrite(_pin_pwm, pwmVal);
     if (dir == 1)
     {
@@ -83,13 +85,12 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
     if (power > max_speed)
         power = max_speed;
 
-    /*
-    if (power < 30)
-        power = 0;
-    */
+    // Thersold voltage
+    if(power > 0)
+        power += _threshold_pwm_value;
 
-        // Motor direction
-        int8_t direction = 1;
+    // Motor direction
+    int8_t direction = 1;
     if (u < 0)
         direction = -1;
 
