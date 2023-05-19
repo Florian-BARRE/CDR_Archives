@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <TimerOne.h>
+#include <Servo.h>
 #include <rolling_basis.h>
 #include <util/atomic.h>
 
@@ -10,7 +11,7 @@
 #define INACTIVE_DELAY 2000
 #define RETURN_START_POSITION_DELAY 70000
 #define STOP_MOTORS_DELAY 98000
-#define DISTANCE_NEAR_START_POSITION 10.0
+#define DISTANCE_NEAR_START_POSITION 30.0
 
 // Creation Rolling Basis
 #define ENCODER_RESOLUTION 1024
@@ -31,6 +32,12 @@
 #define R_IN2 1
 #define R_IN1 0
 
+//Cake graber servos
+Servo r_servo;
+Servo l_servo;
+#define R_SERVO 15
+#define L_SERVO 16
+
 float kp = 8.0; // 6
 float ki = 0.0; // 0003
 float kd = 0.2; // 0.2
@@ -40,50 +47,33 @@ byte max_pwm = 150;
 Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER, max_pwm, TRAJECTORY_PRECISION, INACTIVE_DELAY);
 
 /* Strat part */
-#define STRAT_SIZE 7
+#define STRAT_SIZE 11
 
-/*
 const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
-};
-Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),//Dummy servo Action
+    create_action(8.0 + 20.0 * cos(PI / 8), 20.0 * sin(PI / 8), NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(61.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(224.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(216.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(226.0, 1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, 1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(14.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
+Action bleu_return_position = create_action(14.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0,  -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
-};
-Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-*/
-const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(12.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(45.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
-Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-
-const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
-Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH), // Dummy servo Action
+    create_action(8.0 + 20.0 * cos(PI / 8), -(20.0 * sin(PI / 8)), NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(61.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(224.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(216.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(226.0, -1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, -1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(14.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
+Action green_return_position = create_action(14.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 Action strat[STRAT_SIZE];
 Action return_position;
@@ -128,6 +118,12 @@ void setup()
   // motors init
   analogWriteFrequency(R_PWM, 60000); 
   analogWriteFrequency(L_PWM, 60000); 
+
+  //servo init
+  r_servo.attach(R_SERVO);
+  l_servo.attach(L_SERVO);
+  r_servo.write(180);
+  l_servo.write(0);
 
   rolling_basis_ptr->init_right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, kp, kd, ki, 1.0, 0);
   rolling_basis_ptr->init_left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki, 1.17, 0);
@@ -188,8 +184,20 @@ void handle(){
         }
 
         // If there is an action to complete
-        if (0 <= action_index && action_index < STRAT_SIZE)
+        if(action_index == 1){
+          r_servo.write(90);
+          l_servo.write(90);
+          action_index++;
+        }
+        else if (0 <= action_index && action_index < STRAT_SIZE){
+          if (action_index == 0 || action_index == 1 || action_index == 2 || action_index == 4)
+            rolling_basis_ptr->max_pwm = 80;
+          else
+            rolling_basis_ptr->max_pwm = max_pwm;
+
           rolling_basis_ptr->action_handle(&strat[action_index]);
+        }
+          
 
         // Next coords if the current is done
         if (!strat[action_index].start_rotation && !strat[action_index].move_forward && !strat[action_index].end_rotation)

@@ -10,7 +10,7 @@
 #define INACTIVE_DELAY 2000
 #define RETURN_START_POSITION_DELAY 70000
 #define STOP_MOTORS_DELAY 98000
-#define DISTANCE_NEAR_START_POSITION 10.0
+#define DISTANCE_NEAR_START_POSITION 30.0
 
 // Creation Rolling Basis
 #define ENCODER_RESOLUTION 1024
@@ -40,50 +40,31 @@ byte max_pwm = 150;
 Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER, max_pwm, TRAJECTORY_PRECISION, INACTIVE_DELAY);
 
 /* Strat part */
-#define STRAT_SIZE 7
+#define STRAT_SIZE 10
 
-/*
 const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
-};
-Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(8.0 + 20.0 * cos(PI / 8), 20.0 * sin(PI / 8), NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(61.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(224.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(216.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(226.0, 1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, 1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(14.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
+Action bleu_return_position = create_action(14.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0,  -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
-};
-Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-*/
-const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(12.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(45.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
-Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-
-const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
-Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+    create_action(8.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(8.0 + 20.0 * cos(PI / 8), -(20.0 * sin(PI / 8)), NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(61.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(224.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(216.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(226.0, -1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, -1.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(186.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
+    create_action(14.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
+Action green_return_position = create_action(14.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 Action strat[STRAT_SIZE];
 Action return_position;
@@ -188,8 +169,15 @@ void handle(){
         }
 
         // If there is an action to complete
-        if (0 <= action_index && action_index < STRAT_SIZE)
+        if (0 <= action_index && action_index < STRAT_SIZE){
+          if (action_index == 0 || action_index == 1 || action_index == 2 || action_index == 4)
+            rolling_basis_ptr->max_pwm = 80;
+          else
+            rolling_basis_ptr->max_pwm = max_pwm;
+
           rolling_basis_ptr->action_handle(&strat[action_index]);
+        }
+          
 
         // Next coords if the current is done
         if (!strat[action_index].start_rotation && !strat[action_index].move_forward && !strat[action_index].end_rotation)

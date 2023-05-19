@@ -8,9 +8,24 @@
 #define TRAJECTORY_PRECISION 50
 #define NEXT_POSITION_DELAY 100
 #define INACTIVE_DELAY 2000
-#define RETURN_START_POSITION_DELAY 70000
-#define STOP_MOTORS_DELAY 98000
-#define DISTANCE_NEAR_START_POSITION 10.0
+#define RETURN_START_POSITION_DELAY 999999
+#define STOP_MOTORS_DELAY 999999
+#define DISTANCE_NEAR_START_POSITION 30.0
+
+// PID
+#define MAX_PWM 150
+#define LOW_PWM 80 // To use for pecise action with low speed
+#define Kp 8.0
+#define Ki 0.0
+#define Kd 0.15
+
+#define RIGHT_MOTOR_POWER_FACTOR 1.0
+#define LEFT_MOTOR_POWER_FACTOR  1.17
+
+// Default position
+#define START_X 0.0
+#define START_Y 0.0
+#define START_THETA 0.0
 
 // Creation Rolling Basis
 #define ENCODER_RESOLUTION 1024
@@ -31,58 +46,19 @@
 #define R_IN2 1
 #define R_IN1 0
 
-float kp = 8.0; // 6
-float ki = 0.0; // 0003
-float kd = 0.2; // 0.2
-
-byte max_pwm = 150;
-
-Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER, max_pwm, TRAJECTORY_PRECISION, INACTIVE_DELAY);
+Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER);
 
 /* Strat part */
-#define STRAT_SIZE 7
+#define STRAT_SIZE 1
 
-/*
 const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
+    create_action(60.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
 };
 Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0,  -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
+    create_action(9.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)
 };
-Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-*/
-const Action bleu_strat_model[STRAT_SIZE] = {
-    create_action(12.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(45.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
-Action bleu_return_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
-
-const Action green_strat_model[STRAT_SIZE] = {
-    create_action(130.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(130.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(235.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -1.5, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(190.0, -47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH),
-    create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH)};
 Action green_return_position = create_action(20.0, -15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 Action strat[STRAT_SIZE];
@@ -125,13 +101,17 @@ void setup()
   pinMode(pin_on_off, INPUT);
   pinMode(pin_green_side, INPUT);
 
-  // motors init
-  analogWriteFrequency(R_PWM, 60000); 
-  analogWriteFrequency(L_PWM, 60000); 
+  // Change pwm frequency
+  analogWriteFrequency(R_PWM, 18000); 
+  analogWriteFrequency(L_PWM, 18000); 
 
-  rolling_basis_ptr->init_right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, kp, kd, ki, 1.0, 0);
-  rolling_basis_ptr->init_left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, kp, kd, ki, 1.17, 0);
+  // Init motors
+  rolling_basis_ptr->init_right_motor(R_IN1, R_IN2, R_PWM, R_ENCA, R_ENCB, Kp, Ki, Kd, RIGHT_MOTOR_POWER_FACTOR, 0);
+  rolling_basis_ptr->init_left_motor(L_IN1, L_IN2, L_PWM, L_ENCA, L_ENCB, Kp, Ki, Kd, LEFT_MOTOR_POWER_FACTOR, 0);
   rolling_basis_ptr->init_motors();
+
+  // Init Rolling Basis
+  rolling_basis_ptr->init_rolling_basis(START_X, START_Y, START_THETA, INACTIVE_DELAY, TRAJECTORY_PRECISION, MAX_PWM);
   attachInterrupt(digitalPinToInterrupt(L_ENCA), left_motor_read_encoder, RISING);
   attachInterrupt(digitalPinToInterrupt(R_ENCA), right_motor_read_encoder, RISING);
 
