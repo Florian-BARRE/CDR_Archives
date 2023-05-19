@@ -78,6 +78,28 @@ void Rolling_Basis::is_running_update(){
 
 float Rolling_Basis::trajectory_theta_calculator(float target_x, float target_y)
 {
+    /*
+    float x_error = target_x - this->X;
+    float y_error = target_y - this->Y;
+    float cmd_theta;
+
+    // Extremum rotation
+    if (x_error == 0 && y_error > 0)
+        cmd_theta = PI / 2.0;
+    else if (x_error == 0 && y_error < 0)
+        cmd_theta = -(PI / 2.0);
+    
+    // If don't need to rotate
+    if (y_error == 0)
+        cmd_theta = this->THETA;
+    else
+        cmd_theta = atan2(y_error, x_error) - this->THETA;
+
+    //*cmd_theta = (*cmd_theta > PI || *cmd_theta < -PI) ? fmod(*cmd_theta, PI) : *cmd_theta; // Noah a eu la merveilleuse idée d'employé un ?
+    //cmd_theta = (cmd_theta > PI || cmd_theta < -PI) ? -fmod(cmd_theta, PI) : cmd_theta;
+    return cmd_theta;
+    */
+
     float delta_x = fabs(fabs(target_x) - fabs(this->X));
     float delta_y = fabs(fabs(target_y) - fabs(this->Y));
     float cmd_theta;
@@ -112,6 +134,14 @@ float Rolling_Basis::trajectory_theta_calculator(float target_x, float target_y)
 
 float Rolling_Basis::trajectory_distance_calculator(float target_x, float target_y)
 {
+    /*
+    float x_error = target_x - this->X;
+    float y_error = target_y - this->Y;
+    float cmd_dist;
+
+    cmd_dist = sqrt((x_error * x_error) + (y_error * y_error));
+    return cmd_dist;
+    */
     // No negative dist
     float delta_x = fabs(fabs(target_x) - fabs(this->X));
     float delta_y = fabs(fabs(target_y) - fabs(this->Y));
@@ -151,9 +181,9 @@ void Rolling_Basis::theta_to_ticks(float theta_to_rotate, long *ticks, short *r_
 }
 
 void Rolling_Basis::distance_to_ticks(float distance, long *ticks, short *r_sign, short *l_sign){
-    *ticks = (this->encoder_resolution / this->wheel_perimeter()) * distance;
+    *ticks = abs((this->encoder_resolution / this->wheel_perimeter()) * distance);
 
-    if (*ticks > 0)
+    if (distance > 0)
     {
         *r_sign = 1;
         *l_sign = 1;
@@ -174,17 +204,16 @@ void Rolling_Basis::ticks_calculator(Action *action)
 
         if(action->start_rotation){  
             float cmd_theta = this->trajectory_theta_calculator(action->target_x, action->target_y);
+            // Backward movement
+            if (action->backward)
+                cmd_theta = cmd_theta + PI;
 
-            // Backward deplacement
-            //if(action->backward)
-            //    cmd_theta = fmod(cmd_theta + PI, PI * 2.0);
-            
-            this->theta_to_ticks(cmd_theta, &cmd_ticks, &right_sign, &left_sign);
+            this->theta_to_ticks(cmd_theta, &cmd_ticks, &right_sign, &left_sign); 
         }
         else if(action->move_forward){
             float cmd_dist = this->trajectory_distance_calculator(action->target_x, action->target_y);
 
-            // Backward deplacement
+            // Backward movement
             if (action->backward)
                 cmd_dist = -1.0 * cmd_dist;
 
@@ -195,9 +224,9 @@ void Rolling_Basis::ticks_calculator(Action *action)
             if (action->target_theta != CLASSIC_ANGLE) {
                 float cmd_theta = this->delta_theta_calculator(action->target_theta);
 
-                // Backward deplacement
-                //if (action->backward)
-                //    cmd_theta = fmod(cmd_theta + PI, PI * 2.0);
+                // Backward movement
+                if (action->backward)
+                    cmd_theta = cmd_theta + PI;
 
                 this->theta_to_ticks(cmd_theta, &cmd_ticks, &right_sign, &left_sign);
             }
@@ -232,7 +261,6 @@ void Rolling_Basis::action_handle(Action *current_action) {
     else if (current_action->end_rotation)
         this->rotation_supervisor(current_action);
 
-    // Send motor puslation if the robot is stun
     bool action_running = current_action->start_rotation || current_action->move_forward || current_action->end_rotation;
     if (action_running && !(this->IS_RUNNING)){
         this->left_motor->_threshold_pwm_value  += 200;
@@ -277,6 +305,18 @@ void Rolling_Basis::motors_controller(Action *action){
         if (action->ticks_cursor > action->ticks)
             action->ticks_cursor = action->ticks;
     }
+
+    /*
+    if (abs(right_error) < action->error_precision && abs(left_error) < action->error_precision)
+    {
+        if (abs(action->ticks_cursor - action->ticks) < this->corrector_error_auth)
+            action->ticks_cursor = action->ticks;
+        else
+            action->ticks_cursor += this->corrector_error_auth;
+
+        if (action->ticks_cursor > action->ticks)
+            action->ticks_cursor = action->ticks;
+    }*/
 
     this->right_motor->handle(deltaT, (action->right_ref + action->right_sign * action->ticks_cursor), this->max_pwm);
     this->left_motor->handle( deltaT, (action->left_ref  + action->left_sign * action->ticks_cursor ), this->max_pwm);

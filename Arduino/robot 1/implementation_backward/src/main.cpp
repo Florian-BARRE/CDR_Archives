@@ -7,10 +7,10 @@
 #define ACTION_ERROR_AUTH 20
 #define TRAJECTORY_PRECISION 50
 #define NEXT_POSITION_DELAY 100
-#define INACTIVE_DELAY 2000
-#define RETURN_START_POSITION_DELAY 999999
-#define STOP_MOTORS_DELAY 999999
-#define DISTANCE_NEAR_START_POSITION 30.0
+#define INACTIVE_DELAY 1000
+#define RETURN_START_POSITION_DELAY 70000
+#define STOP_MOTORS_DELAY 98000
+#define DISTANCE_NEAR_START_POSITION 10.0
 
 // Creation Rolling Basis
 #define ENCODER_RESOLUTION 1024
@@ -38,13 +38,22 @@ byte max_pwm = 150;
 
 Rolling_Basis *rolling_basis_ptr = new Rolling_Basis(ENCODER_RESOLUTION, CENTER_DISTANCE, WHEEL_DIAMETER, max_pwm, TRAJECTORY_PRECISION, INACTIVE_DELAY);
 
-#define BALADE_SIZE 2
+#define BALADE_SIZE 3
 short action_index = 0;
 
-Action action0 = create_action(50.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, true);
-Action action1 = create_action(0.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, true);
+// Attention ne jamais commencer par un angle
+// Si la première position est 0, 0 alors une impulsion de déblocage sera envoyé aux moteurs
+Action action0 = create_action(50.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, false);
+Action action1 = create_action(50.0, 50.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, false);
+Action action2 = create_action(50.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, true);
+/*
+Action action1 = create_action(120.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH, true);
+Action action2 = create_action(120.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+Action action3 = create_action(220.0, 47.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+Action action4 = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+*/
 
-Action balade_model[BALADE_SIZE] = {action0, action1};
+Action balade_model[BALADE_SIZE] = {action0, action1, action2};
 Action balade[BALADE_SIZE];
 
 /******* Attach Interrupt *******/
@@ -72,7 +81,7 @@ long right_ticks = 0;
 long left_ticks = 0;
 
 // Return to start position delay
-Action return_to_start_position = create_action(20.0, 15.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
+Action return_to_start_position = create_action(0.0, 0.0, NEXT_POSITION_DELAY, ACTION_ERROR_AUTH);
 
 long start_time = -1;
 
@@ -97,6 +106,7 @@ void setup()
 
   Timer1.initialize(5000);
   Timer1.attachInterrupt(handle);
+
 }
 
 void loop()
@@ -146,12 +156,6 @@ void handle(){
       }
       else
         rolling_basis_ptr->keep_current_position(right_ticks, left_ticks);
-
-      if (action_index >= BALADE_SIZE)
-      {
-        action_index = 0;
-        memcpy(balade, balade_model, sizeof(Action) * BALADE_SIZE);
-      }
     }
     else
       rolling_basis_ptr->keep_current_position(right_ticks, left_ticks);

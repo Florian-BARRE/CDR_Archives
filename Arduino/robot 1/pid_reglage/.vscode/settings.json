@@ -1,0 +1,4 @@
+{
+    "cmake.configureOnOpen": false,
+    "cmake.sourceDirectory": "${workspaceFolder}/.pio/libdeps/teensy41/ArduinoJson/src"
+}

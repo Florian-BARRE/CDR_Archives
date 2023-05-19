@@ -77,7 +77,7 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
 
     // Control signal
     float u = _kp * error + _kd * dedt + _ki * _error_integral;
-    
+
     // Motor power
     float power = fabs(u * _correction_factor);
     if (power > max_speed)
@@ -96,6 +96,12 @@ void Motor::handle(double delta_time, long target_pos, byte max_speed)
 
     // Save error
     _error_prev = error;
+
+    /*
+    Serial.print(fix_ticks);
+    Serial.print(" ");
+    Serial.print(target_pos);
+    */
 
     if (DEBUG_MODE)
         _debug_print(delta_time, target_pos, max_speed, error, dedt, _error_integral, u);
